@@ -1,20 +1,11 @@
-export const menu = `
-    <div class="bg-[#353839] text-white px-6 py-4">
-        <div class="flex justify-center gap-8">
-
-            <nav class="cursor-pointer px-4 py-2 rounded-md hover:bg-gray-500/30 transition">
-                Profile
-            </nav>
-
-            <nav class="cursor-pointer px-4 py-2 rounded-md hover:bg-gray-500/30 transition">
-                Track
-            </nav>
-
-            <nav class="cursor-pointer px-4 py-2 rounded-md hover:bg-gray-500/30 transition">
-                Friends
-            </nav>
-
-        </div>
+export function menu() {
+  return `
+    <div style="background:#141414; border-bottom:1px solid #222; position:sticky; top:0; z-index:100;"
+         class="px-6 py-4 flex items-center justify-between">
+      <span class="bebas text-2xl" style="color:var(--accent); cursor:pointer"
+            onclick="logout()">FitTogether</span>
+      <div class="flex gap-2" id="nav-links"></div>
     </div>
-    `
-;
+  `;
+}
+ 

@@ -1,85 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FitTogether</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" href="./favicon.ico" type="image/x-icon">
-  </head>
-  <body>
-    <div id="menu"></div>
-    <div id="app"></div>
-    <div id="modal"></div>
-
-    <script src="password.js"></script>
-
-    <script type="module">
-      import { menu } from "./components/menu.js";
-      import { loginCard } from "./components/loginCard.js";
-      import { loginCreate } from "./components/loginCreate.js";
-      import { userDashboard } from "./components/Dashboard.js";
-      import { adminDashboard } from "./components/adminDashboard.js";
-      import { basicDashboard } from "./components/basicDashboard.js";
-
-      // Inject persistent components
-      document.getElementById("menu").innerHTML = menu;
-      document.getElementById("modal").innerHTML = loginCreate;
-
-      // --- Router ---
-      function render() {
-        const role = localStorage.getItem("role");
-        const app = document.getElementById("app");
-
-        if (role === "admin") {
-          app.innerHTML = adminDashboard;
-        } else if (role === "user") {
-          app.innerHTML = userDashboard;
-        } else if (role === "basic") {
-          app.innerHTML = basicDashboard;  // home page only
-        } else {
-          app.innerHTML = loginCard;       // not logged in
-        }
-
-  attachListeners();
-}
-
-      // --- Listeners (re-attached after every render) ---
-      function attachListeners() {
-        document.querySelectorAll('[data-modal]').forEach(button => {
-          button.addEventListener('click', () => {
-            document.getElementById(button.getAttribute('data-modal')).classList.remove('hidden');
-          });
-        });
-
-        document.querySelectorAll('#closeLogin, #closeContact').forEach(button => {
-          button.addEventListener('click', () => {
-            button.closest('.fixed').classList.add('hidden');
-          });
-        });
-      }
-
-      // --- Global functions ---
-      window.login = () => {
-        const id = document.getElementById("Id").value;
-        const password = document.getElementById("password").value;
-        const user = users[id];
-
-        if (user && user.password === password) {
-          localStorage.setItem("role", user.role);
-          document.getElementById("loginModal")?.classList.add("hidden");
-          render();
-        } else {
-          alert("Wrong login");
-        }
-      };
-
-      window.logout = () => {
-        localStorage.removeItem("role");
-        render();
-      };
-
-      render(); // run on page load
-    </script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitTogether</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav id="menu"></nav>
+  <div id="app"></div>
+  <div id="modals"></div>
+ 
+  <!-- Auth data -->
+  <script src="users.js"></script>
+ 
+  <!-- App entry point -->
+  <script type="module" src="app.js"></script>
+</body>
 </html>
+ 
