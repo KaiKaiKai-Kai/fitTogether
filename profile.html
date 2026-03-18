@@ -1,0 +1,13 @@
+<div id="userPage" class="hidden">
+
+    
+    <script>
+    const role = localStorage.getItem("role");
+
+    if (role === "admin") {
+        document.getElementById("adminPage").classList.remove("hidden");
+    } else if (role === "user") {
+        document.getElementById("userPage").classList.remove("hidden");
+    }
+    </script>
+</div>
