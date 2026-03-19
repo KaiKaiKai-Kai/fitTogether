@@ -17,6 +17,9 @@
 
 -add more types of workout (stair master, elliptical, indoor rower) @done
 
+-viewing friends profile does not include the heart rate for the workout on recent workout
+
+
 -later major
     -garmin support (important X2) API                              https://www.garmin.com/en-US/forms/GarminConnectDeveloperAccess/
     -andoid support 

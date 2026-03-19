@@ -1,0 +1,7 @@
+node_modules
+.git
+functions
+dataconnect
+codebase
+web-app
+*.log

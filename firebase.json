@@ -1,13 +1,17 @@
 {
   "hosting": {
-    "public": ".",
+    "public": "public",
     "ignore": [
+      "node_modules/**",
+      ".git/**",
       "firebase.json",
       "firestore.rules",
       "firestore.indexes.json",
       ".firebaserc",
-      ".gitignore",
-      "node_modules"
+      "functions/**",
+      "dataconnect/**",
+      "codebase/**",
+      "web-app/**"
     ],
     "rewrites": [
       {
