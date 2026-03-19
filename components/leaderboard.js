@@ -1,0 +1,205 @@
+import { db } from "../db.js";
+
+// ── HELPERS ──
+
+function getTotalWorkouts(username) {
+  const logs = db.getAllLogs(username);
+  return Object.values(logs).reduce((sum, l) => sum + (l.workouts?.length || 0), 0);
+}
+
+function getTotalSteps(username) {
+  const logs = db.getAllLogs(username);
+  return Object.values(logs).reduce((sum, l) => sum + (l.steps || 0), 0);
+}
+
+function getActiveDays(username) {
+  const logs = db.getAllLogs(username);
+  return Object.keys(logs).filter(d =>
+    logs[d].workouts?.length > 0 || logs[d].steps > 0
+  ).length;
+}
+
+function getTodayWorkouts(username) {
+  const today = new Date().toISOString().split("T")[0];
+  const logs  = db.getAllLogs(username);
+  return logs[today]?.workouts?.length || 0;
+}
+
+function buildEntry(id, rank, isYou) {
+  const workouts   = getTotalWorkouts(id);
+  const steps      = getTotalSteps(id);
+  const activeDays = getActiveDays(id);
+  const todayW     = getTodayWorkouts(id);
+
+  const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`;
+  const highlight = isYou
+    ? "border:1px solid var(--accent);"
+    : "border:1px solid #2a2a2a;";
+  const youBadge = isYou
+    ? `<span style="background:var(--accent);color:#0f0f0f;font-size:0.65rem;"
+             class="px-2 py-0.5 rounded uppercase tracking-widest font-bold ml-2">You</span>`
+    : "";
+
+  return `
+    <li class="dark-card p-4 flex items-center gap-4 fade-up" style="${highlight}">
+      <!-- Rank -->
+      <div class="bebas text-2xl w-10 text-center flex-shrink-0"
+           style="color:${rank <= 3 ? "var(--accent)" : "var(--muted)"}">
+        ${medal}
+      </div>
+
+      <!-- Avatar -->
+      <div class="bebas text-xl flex items-center justify-center rounded-full flex-shrink-0"
+           style="width:42px;height:42px;background:${isYou ? "var(--accent)" : "#2a2a2a"};color:${isYou ? "#0f0f0f" : "var(--text)"}">
+        ${id.charAt(0).toUpperCase()}
+      </div>
+
+      <!-- Name -->
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1">
+          <p class="font-semibold truncate">${id}</p>
+          ${youBadge}
+        </div>
+        <p class="text-xs" style="color:var(--muted)">
+          ${activeDays} active day${activeDays !== 1 ? "s" : ""}
+          · ${todayW > 0 ? `${todayW} today` : "no workouts today"}
+        </p>
+      </div>
+
+      <!-- Stats -->
+      <div class="flex gap-4 text-center flex-shrink-0">
+        <div>
+          <p class="bebas text-xl" style="color:var(--accent)">${workouts}</p>
+          <p class="text-xs" style="color:var(--muted)">Workouts</p>
+        </div>
+        <div class="hidden sm:block">
+          <p class="bebas text-xl" style="color:var(--accent)">
+            ${steps > 0 ? (steps / 1000).toFixed(1) + "k" : "—"}
+          </p>
+          <p class="text-xs" style="color:var(--muted)">Steps</p>
+        </div>
+      </div>
+    </li>
+  `;
+}
+
+// ── MAIN COMPONENT ──
+export function leaderboard(username) {
+  const friendIds    = db.getFriends(username);
+  const activeTab    = localStorage.getItem("leaderboardTab") || "friends";
+
+  // ── FRIENDS BOARD ──
+  const friendsWithYou = [...new Set([username, ...friendIds])];
+  const friendsRanked  = friendsWithYou
+    .map(id => ({ id, total: getTotalWorkouts(id) }))
+    .sort((a, b) => b.total - a.total);
+
+  const yourFriendsRank = friendsRanked.findIndex(e => e.id === username) + 1;
+
+  const friendsBoardHTML = friendsRanked.length > 0
+    ? `<ul class="flex flex-col gap-3">
+        ${friendsRanked.map((e, i) => buildEntry(e.id, i + 1, e.id === username)).join("")}
+       </ul>`
+    : `<div class="dark-card p-10 text-center">
+        <p class="text-4xl mb-3">👥</p>
+        <p class="bebas text-2xl mb-2" style="color:var(--accent)">No Friends Yet</p>
+        <p style="color:var(--muted)" class="text-sm mb-4">Add friends to compete on the leaderboard.</p>
+        <button onclick="navigateTo('friends')" class="btn-accent px-6 py-2 rounded-lg text-sm">
+          Find Friends
+        </button>
+       </div>`;
+
+  // ── GLOBAL BOARD ──
+  // Uses window.allUsers which merges hardcoded + registered users
+  const allUserIds   = Object.keys(window.allUsers || users);
+  const globalRanked = allUserIds
+    .map(id => ({ id, total: getTotalWorkouts(id) }))
+    .sort((a, b) => b.total - a.total);
+
+  const yourGlobalRank = globalRanked.findIndex(e => e.id === username) + 1;
+
+  const globalBoardHTML = `
+    <ul class="flex flex-col gap-3">
+      ${globalRanked.map((e, i) => buildEntry(e.id, i + 1, e.id === username)).join("")}
+    </ul>`;
+
+  // ── YOUR RANK BANNER ──
+  function rankBanner(rank, total) {
+    if (rank === 0) return "";
+    return `
+      <div style="background:linear-gradient(135deg,#1e2a0e,#141414);border:1px solid var(--accent);"
+           class="rounded-xl p-4 mb-5 flex items-center justify-between">
+        <div>
+          <p class="text-sm" style="color:var(--muted)">Your Rank</p>
+          <p class="bebas text-3xl" style="color:var(--accent)">#${rank} of ${total}</p>
+        </div>
+        <div class="bebas text-5xl">${rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "💪"}</div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="max-w-2xl mx-auto px-4 py-10 fade-up">
+
+      <!-- Header -->
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="bebas text-4xl" style="color:var(--accent)">Leaderboard</h2>
+          <p class="text-sm" style="color:var(--muted)">Ranked by total workouts</p>
+        </div>
+        <button onclick="navigateTo('dashboard')" class="btn-ghost px-4 py-2 rounded-lg text-sm">
+          ← Back
+        </button>
+      </div>
+
+      <!-- Tab switcher -->
+      <div class="flex gap-2 mb-6 p-1 rounded-xl" style="background:#1a1a1a;border:1px solid #2a2a2a;">
+        <button id="tab-friends"
+                onclick="switchLeaderboardTab('friends')"
+                class="flex-1 py-2 rounded-lg text-sm font-medium transition"
+                style="${activeTab === "friends"
+                  ? "background:var(--accent);color:#0f0f0f;border:none;cursor:pointer;"
+                  : "background:transparent;color:var(--muted);border:none;cursor:pointer;"}">
+          👥 Friends
+        </button>
+        <button id="tab-global"
+                onclick="switchLeaderboardTab('global')"
+                class="flex-1 py-2 rounded-lg text-sm font-medium transition"
+                style="${activeTab === "global"
+                  ? "background:var(--accent);color:#0f0f0f;border:none;cursor:pointer;"
+                  : "background:transparent;color:var(--muted);border:none;cursor:pointer;"}">
+          🌍 Global
+        </button>
+      </div>
+
+      <!-- Friends board -->
+      <div id="board-friends" ${activeTab !== "friends" ? 'class="hidden"' : ""}>
+        ${rankBanner(yourFriendsRank, friendsWithYou.length)}
+        ${friendsBoardHTML}
+      </div>
+
+      <!-- Global board -->
+      <div id="board-global" ${activeTab !== "global" ? 'class="hidden"' : ""}>
+        ${rankBanner(yourGlobalRank, allUserIds.length)}
+        ${globalBoardHTML}
+      </div>
+
+    </div>
+  `;
+}
+
+// ── TAB SWITCHER ──
+export function mountLeaderboardActions() {
+  window.switchLeaderboardTab = (tab) => {
+    localStorage.setItem("leaderboardTab", tab);
+
+    document.getElementById("board-friends").classList.toggle("hidden", tab !== "friends");
+    document.getElementById("board-global").classList.toggle("hidden",  tab !== "global");
+
+    const accent = "background:var(--accent);color:#0f0f0f;border:none;cursor:pointer;";
+    const ghost  = "background:transparent;color:var(--muted);border:none;cursor:pointer;";
+
+    document.getElementById("tab-friends").style.cssText = tab === "friends" ? accent : ghost;
+    document.getElementById("tab-global").style.cssText  = tab === "global"  ? accent : ghost;
+  };
+}

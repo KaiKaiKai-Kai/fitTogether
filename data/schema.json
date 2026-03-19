@@ -1,0 +1,24 @@
+{
+  "users": {
+    "john": {
+      "logs": {
+        "2026-03-19": {
+          "steps": 8240,
+          "calories": 430,
+          "water": 6,
+          "workouts": [
+            {
+              "id": "w1",
+              "type": "Run",
+              "duration": 30,
+              "distance": 5.2,
+              "notes": "Felt great"
+            }
+          ],
+          "mood": "great",
+          "notes": "Good day overall"
+        }
+      }
+    }
+  }
+}

@@ -59,9 +59,10 @@ export function homepage() {
         <div class="dark-card p-8 fade-up-2">
           <h2 class="bebas text-3xl mb-6" style="color:var(--accent)">Sign Up</h2>
           <div class="flex flex-col gap-4">
-            <input class="fit-input" id="inlineRegId" placeholder="Choose a username" />
+            <input class="fit-input" id="inlineRegId" placeholder="Username (letters, numbers, _)" />
             <input class="fit-input" id="inlineRegPassword" type="password"
-                   placeholder="Choose a password" />
+                   placeholder="Password (min. 4 chars)" />
+            <p id="regError" class="text-sm hidden" style="color:#f87171"></p>
             <button class="btn-accent px-6 py-3 rounded-lg w-full"
                     onclick="registerInline()">Create Account</button>
           </div>
@@ -70,3 +71,4 @@ export function homepage() {
     </div>
   `;
 }
+ 

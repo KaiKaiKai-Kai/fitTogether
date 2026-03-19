@@ -1,0 +1,29 @@
+- Make a field for user to enter their data @ user profile @done         https://codepen.io/dervondenbergen/pen/ALOeBL https://codepen.io/rickyeckhardt/pen/oNXeoZp  https://codepen.io/ainalem/pen/GRqPwoz
+- make a list for workout history that user did                    https://codepen.io/jo_Geek/pen/NLoGZZ  https://codepen.io/TajShireen/pen/JjGvVzg https://codepen.io/darcyvoutt/pen/ogPrpK/
+- store data @done
+- user hash code / user uniqe identifire                           https://asecuritysite.com/javascript/js04
+    - make auto JSON creation for user data @done
+- Make add friends
+    - leaderboard     @done                                             https://codepen.io/Johnny-Dragovic/pen/WNqXOmR  https://codepen.io/MalunariDev/pen/RweGGxx https://codepen.io/sumitmsn/pen/yLXXBZZ
+        - Calories
+        - total workouts   @done
+        - latest date    @done
+    - see frends workouts   @done
+-Notifications
+    -user sends a reminder to a friend
+    -when time for workout get a notification
+    -send weekly update 
+-add your weekly scedual
+
+-later major
+    -garmin support (important X2) API                              https://www.garmin.com/en-US/forms/GarminConnectDeveloperAccess/
+    -andoid support 
+        -wear OS (look into -                                       https://github.com/android/health-samples / https://developer.android.com/training/wearables/data/sync)
+        -samsung
+            -galaxy 
+        -google
+    -fitbit support                                                 https://dev.fitbit.com/login
+    -apple support (important X2)                                   https://developer.apple.com/videos/play/wwdc2020/10664/
+    -whoop support 
+    -xioami support (important) (                                   https://github.com/zepp-health/rest-api/wiki /could be https://docs.zepp.com/docs/reference/app-json/) (from mi https://dev.mi.com/docs/micloud/health/)
+                                                                    (https://stormotion.io/blog/how-to-enable-google-fit-apple-healthkit-and-other-services-to-share-data-with-your-app/)
