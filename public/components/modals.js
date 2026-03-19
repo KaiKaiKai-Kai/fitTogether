@@ -9,11 +9,14 @@ export function modals() {
                   style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem">✕</button>
         </div>
         <div class="flex flex-col gap-4">
-          <input class="fit-input" id="loginId" placeholder="Username" autocomplete="username" />
+          <input class="fit-input" id="loginEmail" type="email"
+                 placeholder="Email" autocomplete="email" />
           <input class="fit-input" id="loginPassword" type="password"
                  placeholder="Password" autocomplete="current-password" />
           <p id="loginError" class="text-sm hidden" style="color:#f87171"></p>
-          <button class="btn-accent px-6 py-3 rounded-lg w-full" onclick="login()">Log In</button>
+          <button class="btn-accent px-6 py-3 rounded-lg w-full" onclick="login()">
+            Log In
+          </button>
         </div>
         <p class="text-center text-sm mt-4" style="color:var(--muted)">
           No account?
@@ -22,7 +25,7 @@ export function modals() {
         </p>
       </div>
     </div>
- 
+
     <!-- REGISTER MODAL -->
     <div id="registerModal" class="modal-backdrop hidden">
       <div class="dark-card p-8 w-full max-w-sm fade-up">
@@ -33,12 +36,15 @@ export function modals() {
         </div>
         <div class="flex flex-col gap-4">
           <div>
-            <input class="fit-input" id="regId" placeholder="Username (letters, numbers, _)"
+            <input class="fit-input" id="regUsername"
+                   placeholder="Username (letters, numbers, _)"
                    autocomplete="username" />
-            <p class="text-xs mt-1" style="color:var(--muted)">Min. 3 characters</p>
+            <p class="text-xs mt-1" style="color:var(--muted)">Min. 3 characters, shown to other users</p>
           </div>
+          <input class="fit-input" id="regEmail" type="email"
+                 placeholder="Email" autocomplete="email" />
           <input class="fit-input" id="regPassword" type="password"
-                 placeholder="Password (min. 4 chars)" autocomplete="new-password" />
+                 placeholder="Password (min. 6 chars)" autocomplete="new-password" />
           <input class="fit-input" id="regConfirm" type="password"
                  placeholder="Confirm password" autocomplete="new-password" />
           <p id="regError" class="text-sm hidden" style="color:#f87171"></p>
@@ -55,4 +61,3 @@ export function modals() {
     </div>
   `;
 }
- 

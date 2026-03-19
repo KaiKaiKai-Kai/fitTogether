@@ -1,145 +1,128 @@
-// ── DATABASE ──
-// Reads/writes to localStorage structured as JSON.
-// Call db.export() to download a real .json file at any time.
-
-const DB_KEY = "fittogether_db";
-
-function getDB() {
-  try {
-    return JSON.parse(localStorage.getItem(DB_KEY)) || { users: {} };
-  } catch {
-    return { users: {} };
-  }
-}
-
-function saveDB(db) {
-  localStorage.setItem(DB_KEY, JSON.stringify(db, null, 2));
-}
+import { firestore } from "./firebase.js";
+import {
+  doc, getDoc, setDoc, updateDoc,
+  arrayUnion, arrayRemove
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 function today() {
   return new Date().toISOString().split("T")[0]; // "YYYY-MM-DD"
 }
 
+function emptyLog() {
+  return {
+    steps: 0, calories: 0, heartRate: 0,
+    workouts: [], mood: "", notes: ""
+  };
+}
+
 export const db = {
 
-  // Get today's log for a user, creating it if it doesn't exist
-  getLog(username, date = today()) {
-    const data = getDB();
-    data.users[username] ??= { logs: {}, friends: [] };
-    data.users[username].logs[date] ??= {
-      steps: 0, calories: 0, heartRate: 0,
-      workouts: [], mood: "", notes: ""
-    };
-    saveDB(data);
-    return data.users[username].logs[date];
+  // ── LOGS ──
+
+  async getLog(uid, date = today()) {
+    const snap = await getDoc(doc(firestore, "users", uid));
+    return snap.exists()
+      ? (snap.data().logs?.[date] ?? emptyLog())
+      : emptyLog();
   },
 
-  // Update today's log fields
-  updateLog(username, fields, date = today()) {
-    const data = getDB();
-    data.users[username] ??= { logs: {}, friends: [] };
-    data.users[username].logs[date] ??= {
-      steps: 0, calories: 0, heartRate: 0,
-      workouts: [], mood: "", notes: ""
-    };
-    Object.assign(data.users[username].logs[date], fields);
-    saveDB(data);
+  async updateLog(uid, fields, date = today()) {
+    // merge: true means we only update the fields provided, not wipe the whole doc
+    await setDoc(
+      doc(firestore, "users", uid),
+      { logs: { [date]: fields } },
+      { merge: true }
+    );
   },
 
-  // Add a workout entry to today's log
-  addWorkout(username, workout, date = today()) {
-    const data = getDB();
-    data.users[username] ??= { logs: {}, friends: [] };
-    data.users[username].logs[date] ??= {
-      steps: 0, calories: 0, heartRate: 0,
-      workouts: [], mood: "", notes: ""
-    };
-    const entry = {
+  async addWorkout(uid, workout, date = today()) {
+    const snap     = await getDoc(doc(firestore, "users", uid));
+    const existing = snap.data()?.logs?.[date]?.workouts || [];
+    const entry    = {
       id: `w${Date.now()}`,
       ...workout,
       timestamp: new Date().toISOString()
     };
-    data.users[username].logs[date].workouts.push(entry);
-    saveDB(data);
+    await setDoc(
+      doc(firestore, "users", uid),
+      { logs: { [date]: { workouts: [...existing, entry] } } },
+      { merge: true }
+    );
     return entry;
   },
 
-  // Remove a workout by id
-  removeWorkout(username, workoutId, date = today()) {
-    const data = getDB();
-    const log = data.users[username]?.logs?.[date];
-    if (!log) return;
-    log.workouts = log.workouts.filter(w => w.id !== workoutId);
-    saveDB(data);
+  async removeWorkout(uid, workoutId, date = today()) {
+    const snap     = await getDoc(doc(firestore, "users", uid));
+    const workouts = (snap.data()?.logs?.[date]?.workouts || [])
+      .filter(w => w.id !== workoutId);
+    await setDoc(
+      doc(firestore, "users", uid),
+      { logs: { [date]: { workouts } } },
+      { merge: true }
+    );
   },
 
-  // Get all logs for a user
-  getAllLogs(username) {
-    const data = getDB();
-    return data.users[username]?.logs || {};
+  async getAllLogs(uid) {
+    const snap = await getDoc(doc(firestore, "users", uid));
+    return snap.exists() ? (snap.data().logs || {}) : {};
   },
 
   // ── FRIENDS ──
 
-  getFriends(username) {
-    const data = getDB();
-    return data.users[username]?.friends || [];
+  async getFriends(uid) {
+    const snap = await getDoc(doc(firestore, "users", uid));
+    return snap.data()?.friends || [];
   },
 
-  addFriend(username, friendId) {
-    const data = getDB();
-    data.users[username] ??= { logs: {}, friends: [] };
-    data.users[username].friends ??= [];
-    if (!data.users[username].friends.includes(friendId)) {
-      data.users[username].friends.push(friendId);
-      saveDB(data);
-      return true;
-    }
-    return false;
+  async addFriend(uid, friendId) {
+    await setDoc(
+      doc(firestore, "users", uid),
+      { friends: arrayUnion(friendId) },
+      { merge: true }
+    );
   },
 
-  removeFriend(username, friendId) {
-    const data = getDB();
-    if (!data.users[username]?.friends) return;
-    data.users[username].friends = data.users[username].friends.filter(f => f !== friendId);
-    saveDB(data);
+  async removeFriend(uid, friendId) {
+    await updateDoc(
+      doc(firestore, "users", uid),
+      { friends: arrayRemove(friendId) }
+    );
   },
 
-  // Returns a FROZEN deep copy of a friend's public data — cannot write back
-  getFriendProfile(friendId) {
-    const data = getDB();
-    const raw = data.users[friendId];
-    if (!raw) return null;
+  // Returns a frozen deep copy — cannot be used to write back
+  async getFriendProfile(friendId) {
+    const snap = await getDoc(doc(firestore, "users", friendId));
+    if (!snap.exists()) return null;
     return Object.freeze(JSON.parse(JSON.stringify({
-      logs: raw.logs || {}
+      logs: snap.data().logs || {}
     })));
   },
 
-  // ── IMPORT / EXPORT ──
+  // ── USER PROFILE ──
 
-  export() {
-    const data = getDB();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `fittogether_${today()}.json`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+  // Save display name and role when a user registers
+  async createProfile(uid, username, role = "user") {
+    await setDoc(
+      doc(firestore, "users", uid),
+      { username, role, friends: [], logs: {} },
+      { merge: true }
+    );
   },
 
-  import(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        try {
-          const parsed = JSON.parse(e.target.result);
-          saveDB(parsed);
-          resolve(parsed);
-        } catch {
-          reject(new Error("Invalid JSON file"));
-        }
-      };
-      reader.readAsText(file);
-    });
+  // Get a user's profile (username, role)
+  async getProfile(uid) {
+    const snap = await getDoc(doc(firestore, "users", uid));
+    return snap.exists() ? snap.data() : null;
+  },
+
+  // Get all user profiles for the leaderboard
+  async getAllProfiles() {
+    const { collection, getDocs } = await import(
+      "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"
+    );
+    const snap = await getDocs(collection(firestore, "users"));
+    const result = {};
+    snap.forEach(d => { result[d.id] = d.data(); });
+    return result;
   }
 };
