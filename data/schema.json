@@ -5,7 +5,7 @@
         "2026-03-19": {
           "steps": 8240,
           "calories": 430,
-          "water": 6,
+          "heartRate": 6,
           "workouts": [
             {
               "id": "w1",

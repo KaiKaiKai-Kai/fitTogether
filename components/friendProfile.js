@@ -17,7 +17,7 @@ export function friendProfile(friendId, viewerUsername) {
   }
  
   const today      = new Date().toISOString().split("T")[0];
-  const todayLog   = profile.logs[today] || { steps: 0, calories: 0, water: 0, workouts: [], mood: "" };
+  const todayLog   = profile.logs[today] || { steps: 0, calories: 0, heartRate: 0, workouts: [], mood: "" };
   const allLogs    = profile.logs;
  
   // Weekly workouts
@@ -98,8 +98,8 @@ export function friendProfile(friendId, viewerUsername) {
           <p class="text-xs mt-1" style="color:var(--muted)">Calories</p>
         </div>
         <div class="dark-card p-5 text-center">
-          <p class="bebas text-4xl" style="color:var(--accent)">${todayLog.water || 0}</p>
-          <p class="text-xs mt-1" style="color:var(--muted)">Glasses of Water</p>
+          <p class="bebas text-4xl" style="color:var(--accent)">${todayLog.heartRate || 0}</p>
+          <p class="text-xs mt-1" style="color:var(--muted)">Avg. Heart Rate</p>
         </div>
         <div class="dark-card p-5 text-center">
           <p class="bebas text-4xl" style="color:var(--accent)">${todayLog.workouts.length}</p>
