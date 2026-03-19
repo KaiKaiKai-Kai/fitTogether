@@ -22,6 +22,19 @@ import {
 document.getElementById("menu").innerHTML   = menu();
 document.getElementById("modals").innerHTML = modals();
 
+// ── SHOW LOADING STATE immediately while Firebase auth resolves ──
+document.getElementById("app").innerHTML = `
+  <div style="display:flex;align-items:center;justify-content:center;min-height:80vh;">
+    <div style="text-align:center;">
+      <div style="width:48px;height:48px;border:3px solid #2a2a2a;border-top-color:var(--accent);
+                  border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;">
+      </div>
+      <p style="color:var(--muted);font-family:'DM Sans',sans-serif;">Loading...</p>
+    </div>
+  </div>
+  <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+`;
+
 // ── AUTH STATE LISTENER ──
 // This fires every time the user logs in, logs out, or the page loads.
 // It's the single source of truth for who is logged in.
@@ -42,7 +55,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // ── ROUTER ──
-export function render() {
+export async function render() {
   const role = localStorage.getItem("role");
   const name = localStorage.getItem("name") || "";
   const uid  = localStorage.getItem("uid")  || "";
@@ -58,26 +71,26 @@ export function render() {
 
   switch (page) {
     case "friends":
-      app.innerHTML = friends(uid);
+      app.innerHTML = await friends(uid);
       mountFriendActions(uid);
       break;
 
     case "leaderboard":
-      app.innerHTML = leaderboard(uid);
+      app.innerHTML = await leaderboard(uid);
       mountLeaderboardActions();
       break;
 
     case "friendProfile": {
       const friendId = localStorage.getItem("viewingFriend");
-      app.innerHTML = friendProfile(friendId, uid);
+      app.innerHTML = await friendProfile(friendId, uid);
       break;
     }
 
     case "dashboard":
     default:
       switch (role) {
-        case "admin": app.innerHTML = adminDashboard(name); break;
-        case "user":  app.innerHTML = userDashboard(uid, name);  break;
+        case "admin": app.innerHTML = await adminDashboard(name); break;
+        case "user":  app.innerHTML = await userDashboard(uid, name);  break;
         case "basic": app.innerHTML = basicDashboard(name); break;
       }
   }
@@ -192,11 +205,11 @@ document.getElementById("modals").addEventListener("click", e => {
 // ── NAVIGATION ──
 function navigateTo(page) {
   localStorage.setItem("page", page);
-  render();
+  render().catch(console.error);
 }
 
 // ── EXPOSE GLOBALS ──
-window.render         = render;
+window.render         = () => render().catch(console.error);
 window.navigateTo     = navigateTo;
 window.openModal      = openModal;
 window.closeAllModals = closeAllModals;

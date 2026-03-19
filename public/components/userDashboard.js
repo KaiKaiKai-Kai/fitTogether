@@ -1,12 +1,14 @@
 import { db } from "../db.js";
 import { mountTrackerActions } from "./tracker.js";
 
-export function userDashboard(name) {
-  setTimeout(() => mountTrackerActions(name), 0);
-
-  const log = db.getLog(name);
-  const allLogs = db.getAllLogs(name);
+export async function userDashboard(uid, name) {
+  // Load data from Firestore
+  const log              = await db.getLog(uid);
+  const allLogs          = await db.getAllLogs(uid);
   const workoutsThisWeek = countWorkoutsThisWeek(allLogs);
+
+  // Mount tracker actions after this render cycle
+  setTimeout(() => mountTrackerActions(uid), 0);
 
   return `
     <div class="max-w-4xl mx-auto px-4 py-10 fade-up">
@@ -45,8 +47,7 @@ export function userDashboard(name) {
         </div>
 
         <!-- Add data card -->
-        <div class="dark-card p-6 text-center fade-up-4 cursor-pointer
-                    hover:border-[var(--accent)] transition-colors"
+        <div class="dark-card p-6 text-center fade-up-4 cursor-pointer"
              style="border:1px solid #2a2a2a;"
              onclick="openTrackerModal()">
           <p class="bebas text-5xl" style="color:var(--accent)">+</p>
@@ -90,7 +91,7 @@ export function userDashboard(name) {
 
         <div class="p-6 flex flex-col gap-5">
 
-          <!-- Steps, Calories, Water -->
+          <!-- Steps, Calories, Heart Rate -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="dark-card p-5" style="border-color:#333">
               <p class="text-sm mb-2" style="color:var(--muted)">Steps</p>
@@ -208,7 +209,6 @@ function renderActivityList(log, allLogs) {
   const today = new Date().toISOString().split("T")[0];
   const rows  = [];
 
-  // Today's workouts first
   log.workouts.forEach(w => {
     rows.push(`
       <li class="py-4 flex justify-between items-center">
@@ -219,11 +219,9 @@ function renderActivityList(log, allLogs) {
         <span style="background:#1e2a0e;color:var(--accent);" class="text-sm px-3 py-1 rounded-full">
           ${w.duration} min${w.distance ? ` · ${w.distance} km` : ""}${w.heartRate ? ` · ❤️ ${w.heartRate} bpm` : ""}
         </span>
-      </li>
-    `);
+      </li>`);
   });
 
-  // Past days
   Object.entries(allLogs)
     .filter(([d]) => d !== today)
     .sort(([a], [b]) => b.localeCompare(a))
@@ -239,8 +237,7 @@ function renderActivityList(log, allLogs) {
             <span style="background:#1a2035;color:#60a5fa;" class="text-sm px-3 py-1 rounded-full">
               ${w.duration} min${w.distance ? ` · ${w.distance} km` : ""}${w.heartRate ? ` · ❤️ ${w.heartRate} bpm` : ""}
             </span>
-          </li>
-        `);
+          </li>`);
       });
     });
 
@@ -252,39 +249,23 @@ function renderActivityList(log, allLogs) {
 function countWorkoutsThisWeek(allLogs) {
   const now   = new Date();
   const start = new Date(now);
-  start.setDate(now.getDate() - now.getDay()); // Sunday
+  start.setDate(now.getDate() - now.getDay());
   start.setHours(0, 0, 0, 0);
-
   return Object.entries(allLogs)
     .filter(([date]) => new Date(date) >= start)
     .reduce((sum, [, l]) => sum + l.workouts.length, 0);
 }
 
-// ── MODAL OPEN/CLOSE ──
-// Exposed to window so the + card onclick works
+// ── MODAL ──
 window.openTrackerModal = () => {
   document.getElementById("trackerModal")?.classList.remove("hidden");
 };
-
 window.closeTrackerModal = () => {
   document.getElementById("trackerModal")?.classList.add("hidden");
-  refreshStats(); // update stat cards when modal closes
 };
-
-// Close on backdrop click
 document.addEventListener("click", e => {
   const modal = document.getElementById("trackerModal");
-  if (modal && e.target === modal) {
-    window.closeTrackerModal();
-  }
+  if (modal && e.target === modal) window.closeTrackerModal();
 });
 
-// ── REFRESH STAT CARDS after modal closes ──
-function refreshStats() {
-  const name = localStorage.getItem("name");
-  if (!name) return;
-  const { db: dbModule } = import("../db.js").catch(() => {});
-}
-
-// Re-export renderMoodButtons and renderWorkoutRows so tracker.js can use them
 export { renderMoodButtons, renderWorkoutRows };
