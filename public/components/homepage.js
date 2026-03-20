@@ -14,12 +14,12 @@ export function homepage() {
         </p>
         <div class="fade-up-4 flex gap-4 justify-center flex-wrap">
           <button class="btn-accent px-8 py-4 rounded-xl text-lg"
-                  onclick="openModal('loginModal')">Get Started</button>
+                  onclick="openModal('loginModal')">Log In</button>
           <button class="btn-ghost px-8 py-4 rounded-xl text-lg"
                   onclick="openModal('registerModal')">Create Account</button>
         </div>
       </div>
- 
+
       <!-- Features -->
       <div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-5 px-6 py-16">
         <div class="dark-card p-7 fade-up">
@@ -44,31 +44,22 @@ export function homepage() {
           </p>
         </div>
       </div>
- 
-      <!-- Inline login + register -->
-      <div class="max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6 px-6 pb-20">
-        <div class="dark-card p-8 fade-up">
-          <h2 class="bebas text-3xl mb-6" style="color:var(--accent)">Log In</h2>
-          <div class="flex flex-col gap-4">
-            <input class="fit-input" id="inlineId" placeholder="Username" />
-            <input class="fit-input" id="inlinePassword" type="password" placeholder="Password" />
-            <button class="btn-accent px-6 py-3 rounded-lg w-full"
-                    onclick="loginInline()">Log In</button>
-          </div>
-        </div>
-        <div class="dark-card p-8 fade-up-2">
-          <h2 class="bebas text-3xl mb-6" style="color:var(--accent)">Sign Up</h2>
-          <div class="flex flex-col gap-4">
-            <input class="fit-input" id="inlineRegId" placeholder="Username (letters, numbers, _)" />
-            <input class="fit-input" id="inlineRegPassword" type="password"
-                   placeholder="Password (min. 4 chars)" />
-            <p id="regError" class="text-sm hidden" style="color:#f87171"></p>
-            <button class="btn-accent px-6 py-3 rounded-lg w-full"
-                    onclick="registerInline()">Create Account</button>
+
+      <!-- CTA strip -->
+      <div class="max-w-xl mx-auto px-6 pb-20 text-center fade-up">
+        <div class="dark-card p-10">
+          <h2 class="bebas text-3xl mb-3" style="color:var(--accent)">Ready to start?</h2>
+          <p style="color:var(--muted)" class="text-sm mb-6">
+            Join FitTogether and start tracking your fitness journey today.
+          </p>
+          <div class="flex gap-3 justify-center flex-wrap">
+            <button class="btn-accent px-8 py-3 rounded-xl"
+                    onclick="openModal('registerModal')">Create Free Account</button>
+            <button class="btn-ghost px-8 py-3 rounded-xl"
+                    onclick="openModal('loginModal')">Log In</button>
           </div>
         </div>
       </div>
     </div>
   `;
 }
- 
