@@ -10,12 +10,12 @@ export async function friends(uid) {
 
   function buildFriendCard(friendUid) {
     const profile  = allProfiles[friendUid];
-    if (!profile) return ""; // user exists in auth but no profile yet
+    if (!profile) return "";
     const todayLog = profile.logs?.[today];
     const total    = Object.values(profile.logs || {})
       .reduce((sum, l) => sum + (l.workouts?.length || 0), 0);
-    const mood     = todayLog?.mood || null;
-    const name     = profile.username || friendUid;
+    const mood = todayLog?.mood || null;
+    const name = profile.username || friendUid;
 
     return `
       <div class="dark-card p-6 flex flex-col gap-4 fade-up">
@@ -28,7 +28,7 @@ export async function friends(uid) {
             <div>
               <p class="font-semibold text-lg">${name}</p>
               <p class="text-sm" style="color:var(--muted)">
-                ${mood ? `Feeling ${mood}` : "No update today"}
+                ${mood ? "Feeling " + mood : "No update today"}
               </p>
             </div>
           </div>
@@ -44,12 +44,10 @@ export async function friends(uid) {
             </button>
           </div>
         </div>
-
-        <!-- Mini stats -->
         <div class="grid grid-cols-3 gap-3 pt-2" style="border-top:1px solid #2a2a2a">
           <div class="text-center">
             <p class="bebas text-2xl" style="color:var(--accent)">
-              ${todayLog?.steps > 0 ? todayLog.steps.toLocaleString() : "—"}
+              ${todayLog?.steps > 0 ? todayLog.steps.toLocaleString() : "--"}
             </p>
             <p class="text-xs" style="color:var(--muted)">Steps Today</p>
           </div>
@@ -71,7 +69,6 @@ export async function friends(uid) {
   const friendCardsHTML = friendIds.length
     ? friendIds.map(buildFriendCard).filter(Boolean).join("")
     : `<div class="dark-card p-10 text-center fade-up">
-        <p class="text-4xl mb-4">👥</p>
         <p class="bebas text-2xl mb-2" style="color:var(--accent)">No Friends Yet</p>
         <p style="color:var(--muted)" class="text-sm">Search for a username above to add your first friend.</p>
        </div>`;
@@ -79,7 +76,6 @@ export async function friends(uid) {
   return `
     <div class="max-w-3xl mx-auto px-4 py-10 fade-up">
 
-      <!-- Header -->
       <div class="flex justify-between items-center mb-8">
         <div>
           <h2 class="bebas text-4xl" style="color:var(--accent)">Friends</h2>
@@ -88,11 +84,10 @@ export async function friends(uid) {
           </p>
         </div>
         <button onclick="navigateTo('dashboard')" class="btn-ghost px-4 py-2 rounded-lg text-sm">
-          ← Back
+          Back
         </button>
       </div>
 
-      <!-- Add friend -->
       <div class="dark-card p-5 mb-6">
         <p class="text-sm mb-3 font-medium">Add a Friend by Username</p>
         <div class="flex gap-3">
@@ -106,7 +101,6 @@ export async function friends(uid) {
         <p id="friend-msg" class="text-sm mt-2 hidden"></p>
       </div>
 
-      <!-- Friend cards -->
       <div class="flex flex-col gap-4" id="friend-list">
         ${friendCardsHTML}
       </div>
@@ -126,25 +120,22 @@ export function mountFriendActions(uid) {
 
     if (!query) { showMsg(msg, "Please enter a username.", "red"); return; }
 
-    // Search all profiles for a matching username
     const allProfiles = await db.getAllProfiles();
     const match = Object.entries(allProfiles)
       .find(([id, p]) => p.username?.toLowerCase() === query);
 
-    if (!match)           { showMsg(msg, `User "${query}" not found.`, "red");          return; }
-    if (match[0] === uid) { showMsg(msg, "You can't add yourself.", "red");              return; }
+    if (!match)           { showMsg(msg, "User not found.", "red");             return; }
+    if (match[0] === uid) { showMsg(msg, "You can't add yourself.", "red");     return; }
 
     const currentFriends = await db.getFriends(uid);
     if (currentFriends.includes(match[0])) {
-      showMsg(msg, `${query} is already your friend.`, "var(--muted)");
+      showMsg(msg, query + " is already your friend.", "var(--muted)");
       return;
     }
 
     await db.addFriend(uid, match[0]);
-    showMsg(msg, `${query} added!`, "var(--accent)");
+    showMsg(msg, query + " added!", "var(--accent)");
     input.value = "";
-
-    // Re-render friend list
     await refreshFriendList(uid);
   };
 
@@ -178,7 +169,6 @@ async function refreshFriendList(uid) {
   if (!friendIds.length) {
     list.innerHTML = `
       <div class="dark-card p-10 text-center fade-up">
-        <p class="text-4xl mb-4">👥</p>
         <p class="bebas text-2xl mb-2" style="color:var(--accent)">No Friends Yet</p>
         <p style="color:var(--muted)" class="text-sm">Search for a username above to add your first friend.</p>
       </div>`;
@@ -191,8 +181,8 @@ async function refreshFriendList(uid) {
     const todayLog = profile.logs?.[today];
     const total    = Object.values(profile.logs || {})
       .reduce((sum, l) => sum + (l.workouts?.length || 0), 0);
-    const mood     = todayLog?.mood || null;
-    const name     = profile.username || friendUid;
+    const mood = todayLog?.mood || null;
+    const name = profile.username || friendUid;
 
     return `
       <div class="dark-card p-6 flex flex-col gap-4 fade-up">
@@ -204,7 +194,7 @@ async function refreshFriendList(uid) {
             </div>
             <div>
               <p class="font-semibold text-lg">${name}</p>
-              <p class="text-sm" style="color:var(--muted)">${mood ? `Feeling ${mood}` : "No update today"}</p>
+              <p class="text-sm" style="color:var(--muted)">${mood ? "Feeling " + mood : "No update today"}</p>
             </div>
           </div>
           <div class="flex gap-2">
@@ -218,7 +208,7 @@ async function refreshFriendList(uid) {
         <div class="grid grid-cols-3 gap-3 pt-2" style="border-top:1px solid #2a2a2a">
           <div class="text-center">
             <p class="bebas text-2xl" style="color:var(--accent)">
-              ${todayLog?.steps > 0 ? todayLog.steps.toLocaleString() : "—"}
+              ${todayLog?.steps > 0 ? todayLog.steps.toLocaleString() : "--"}
             </p>
             <p class="text-xs" style="color:var(--muted)">Steps Today</p>
           </div>

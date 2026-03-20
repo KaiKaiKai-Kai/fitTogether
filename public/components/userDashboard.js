@@ -2,12 +2,10 @@ import { db } from "../db.js";
 import { mountTrackerActions } from "./tracker.js";
 
 export async function userDashboard(uid, name) {
-  // Load data from Firestore
   const log              = await db.getLog(uid);
   const allLogs          = await db.getAllLogs(uid);
   const workoutsThisWeek = countWorkoutsThisWeek(allLogs);
 
-  // Mount tracker actions after this render cycle
   setTimeout(() => mountTrackerActions(uid), 0);
 
   return `
@@ -17,7 +15,7 @@ export async function userDashboard(uid, name) {
       <div style="background:linear-gradient(135deg,#1e2a0e,#141414);border:1px solid #2a2a2a;"
            class="rounded-2xl p-8 mb-6">
         <h2 class="bebas text-4xl mb-1">
-          Welcome back, <span style="color:var(--accent)">${name}</span> 💪
+          Welcome back, <span style="color:var(--accent)">${name}</span>
         </h2>
         <p style="color:var(--muted)">Here's your fitness summary for today.</p>
       </div>
@@ -27,14 +25,14 @@ export async function userDashboard(uid, name) {
 
         <div class="dark-card p-6 text-center fade-up">
           <p class="bebas text-5xl" style="color:var(--accent)" id="stat-steps">
-            ${log.steps > 0 ? log.steps.toLocaleString() : "—"}
+            ${log.steps > 0 ? log.steps.toLocaleString() : "--"}
           </p>
           <p style="color:var(--muted)" class="mt-1 text-sm">Steps Today</p>
         </div>
 
         <div class="dark-card p-6 text-center fade-up-2">
           <p class="bebas text-5xl" style="color:var(--accent)" id="stat-calories">
-            ${log.calories > 0 ? log.calories : "—"}
+            ${log.calories > 0 ? log.calories : "--"}
           </p>
           <p style="color:var(--muted)" class="mt-1 text-sm">Calories Burned</p>
         </div>
@@ -46,7 +44,6 @@ export async function userDashboard(uid, name) {
           <p style="color:var(--muted)" class="mt-1 text-sm">Workouts This Week</p>
         </div>
 
-        <!-- Add data card -->
         <div class="dark-card p-6 text-center fade-up-4 cursor-pointer"
              style="border:1px solid #2a2a2a;"
              onclick="openTrackerModal()">
@@ -66,7 +63,7 @@ export async function userDashboard(uid, name) {
 
     </div>
 
-    <!-- ── TRACKER MODAL ── -->
+    <!-- TRACKER MODAL -->
     <div id="trackerModal" class="modal-backdrop hidden">
       <div class="dark-card w-full max-w-2xl mx-4 fade-up"
            style="max-height:90vh; overflow-y:auto;">
@@ -79,13 +76,17 @@ export async function userDashboard(uid, name) {
             <p class="text-sm" style="color:var(--muted)">${new Date().toISOString().split("T")[0]}</p>
           </div>
           <div class="flex gap-2 items-center">
-            <button onclick="exportData()" class="btn-ghost px-3 py-1 rounded-lg text-xs">⬇ Export</button>
+            <button onclick="exportData()" class="btn-ghost px-3 py-1 rounded-lg text-xs">
+              Export
+            </button>
             <label class="btn-ghost px-3 py-1 rounded-lg text-xs cursor-pointer">
-              ⬆ Import
+              Import
               <input type="file" accept=".json" onchange="importData(event)" style="display:none">
             </label>
             <button onclick="closeTrackerModal()"
-                    style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem;margin-left:8px">✕</button>
+                    style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem;margin-left:8px">
+              &#x2715;
+            </button>
           </div>
         </div>
 
@@ -112,7 +113,7 @@ export async function userDashboard(uid, name) {
               <input id="field-heartRate" type="number" min="0" max="250" class="fit-input"
                      style="font-size:1.4rem;font-family:'Bebas Neue',sans-serif;"
                      value="${log.heartRate || ""}"
-                     placeholder="—"
+                     placeholder="--"
                      oninput="updateField('heartRate', this.value)" />
             </div>
           </div>
@@ -178,7 +179,7 @@ export async function userDashboard(uid, name) {
 // ── HELPERS ──
 
 function renderMoodButtons(currentMood) {
-  return ["😴 tired", "😐 okay", "🙂 good", "💪 great", "🔥 on fire"].map(m => {
+  return ["Tired", "Okay", "Good", "Great", "On Fire"].map(m => {
     const active = currentMood === m;
     const style  = active
       ? "background:var(--accent);color:#0f0f0f;border:none;cursor:pointer;"
@@ -196,11 +197,16 @@ function renderWorkoutRows(workouts) {
       <div>
         <p class="font-medium">${w.type}</p>
         <p class="text-sm" style="color:var(--muted)">
-          ${w.duration} min${w.distance ? ` · ${w.distance} km` : ""}${w.heartRate ? ` · ❤️ ${w.heartRate} bpm` : ""}${w.notes ? ` · ${w.notes}` : ""}
+          ${w.duration} min
+          ${w.distance ? " · " + w.distance + " km" : ""}
+          ${w.heartRate ? " · " + w.heartRate + " bpm" : ""}
+          ${w.notes ? " · " + w.notes : ""}
         </p>
       </div>
       <button onclick="removeWorkout('${w.id}')"
-              style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem">✕</button>
+              style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem">
+        &#x2715;
+      </button>
     </li>
   `).join("");
 }
@@ -217,7 +223,9 @@ function renderActivityList(log, allLogs) {
           <p class="text-sm" style="color:var(--muted)">Today</p>
         </div>
         <span style="background:#1e2a0e;color:var(--accent);" class="text-sm px-3 py-1 rounded-full">
-          ${w.duration} min${w.distance ? ` · ${w.distance} km` : ""}${w.heartRate ? ` · ❤️ ${w.heartRate} bpm` : ""}
+          ${w.duration} min
+          ${w.distance ? " · " + w.distance + " km" : ""}
+          ${w.heartRate ? " · " + w.heartRate + " bpm" : ""}
         </span>
       </li>`);
   });
@@ -235,7 +243,9 @@ function renderActivityList(log, allLogs) {
               <p class="text-sm" style="color:var(--muted)">${date}</p>
             </div>
             <span style="background:#1a2035;color:#60a5fa;" class="text-sm px-3 py-1 rounded-full">
-              ${w.duration} min${w.distance ? ` · ${w.distance} km` : ""}${w.heartRate ? ` · ❤️ ${w.heartRate} bpm` : ""}
+              ${w.duration} min
+              ${w.distance ? " · " + w.distance + " km" : ""}
+              ${w.heartRate ? " · " + w.heartRate + " bpm" : ""}
             </span>
           </li>`);
       });
