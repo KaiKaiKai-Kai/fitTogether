@@ -101,18 +101,29 @@ export async function render() {
 
 // ── NAV ──
 function updateNav(role, name) {
-  const nav = document.getElementById("nav-links");
+  const nav       = document.getElementById("nav-links");
+  const mobileNav = document.getElementById("mobile-nav-links");
+
   if (!role) {
-    nav.innerHTML = `
+    const loggedOutHTML = `
       <button onclick="openModal('loginModal')"
               style="color:var(--muted);background:none;border:none;cursor:pointer;"
               class="px-4 py-2">Log In</button>
       <button onclick="openModal('registerModal')"
               class="btn-accent px-5 py-2 rounded-lg text-sm">Sign Up</button>`;
+    if (nav)       nav.innerHTML       = loggedOutHTML;
+    if (mobileNav) mobileNav.innerHTML = `
+      <button onclick="openModal('loginModal');toggleMobileMenu()"
+              style="color:var(--muted);background:none;border:none;cursor:pointer;text-align:left;"
+              class="px-4 py-3 w-full">Log In</button>
+      <button onclick="openModal('registerModal');toggleMobileMenu()"
+              class="btn-accent px-4 py-3 rounded-lg text-sm w-full text-left">Sign Up</button>`;
     return;
   }
+
   const showFriends = role === "user" || role === "admin";
-  nav.innerHTML = `
+
+  const desktopHTML = `
     ${showFriends ? `
       <button onclick="navigateTo('friends')"
               class="btn-ghost px-4 py-2 rounded-lg text-sm">👥 Friends</button>
@@ -123,6 +134,27 @@ function updateNav(role, name) {
     <span style="color:var(--muted)" class="text-sm self-center mx-1">Hi, ${name}</span>
     <button onclick="logout()" class="btn-ghost px-4 py-2 rounded-lg text-sm">Log Out</button>
   `;
+
+  // Mobile nav — full width buttons, close menu on tap
+  const mobileHTML = `
+    <p class="text-xs px-2 pb-1" style="color:var(--muted)">Hi, ${name}</p>
+    ${showFriends ? `
+      <button onclick="navigateTo('friends');toggleMobileMenu()"
+              class="btn-ghost w-full text-left px-4 py-3 rounded-lg text-sm">👥 Friends</button>
+      <button onclick="navigateTo('leaderboard');toggleMobileMenu()"
+              class="btn-ghost w-full text-left px-4 py-3 rounded-lg text-sm">🏆 Leaderboard</button>
+      <button onclick="navigateTo('calendar');toggleMobileMenu()"
+              class="btn-ghost w-full text-left px-4 py-3 rounded-lg text-sm">📅 Planner</button>` : ""}
+    <button onclick="navigateTo('dashboard');toggleMobileMenu()"
+            class="btn-ghost w-full text-left px-4 py-3 rounded-lg text-sm">🏠 Home</button>
+    <div style="height:1px;background:#222;margin:8px 0"></div>
+    <button onclick="logout()"
+            class="w-full text-left px-4 py-3 rounded-lg text-sm"
+            style="background:none;border:none;color:#f87171;cursor:pointer;">Log Out</button>
+  `;
+
+  if (nav)       nav.innerHTML       = desktopHTML;
+  if (mobileNav) mobileNav.innerHTML = mobileHTML;
 }
 
 // ── MODAL LISTENERS ──

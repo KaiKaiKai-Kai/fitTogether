@@ -5,7 +5,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 function today() {
-  return new Date().toISOString().split("T")[0]; // "YYYY-MM-DD"
+  return new Date().toISOString().split("T")[0];
 }
 
 function emptyLog() {
@@ -27,7 +27,6 @@ export const db = {
   },
 
   async updateLog(uid, fields, date = today()) {
-    // merge: true means we only update the fields provided, not wipe the whole doc
     await setDoc(
       doc(firestore, "users", uid),
       { logs: { [date]: fields } },
@@ -67,6 +66,37 @@ export const db = {
     return snap.exists() ? (snap.data().logs || {}) : {};
   },
 
+  // ── PLANNED WORKOUTS ──
+
+  // Get all planned workouts — returns { "YYYY-MM-DD": [{ type, time, duration, notes, remind }] }
+  async getPlannedWorkouts(uid) {
+    const snap = await getDoc(doc(firestore, "users", uid));
+    return snap.exists() ? (snap.data().planned || {}) : {};
+  },
+
+  // Add a planned workout to a specific date
+  async addPlannedWorkout(uid, date, plan) {
+    const snap     = await getDoc(doc(firestore, "users", uid));
+    const existing = snap.data()?.planned?.[date] || [];
+    await setDoc(
+      doc(firestore, "users", uid),
+      { planned: { [date]: [...existing, plan] } },
+      { merge: true }
+    );
+  },
+
+  // Remove a planned workout by index on a specific date
+  async removePlannedWorkout(uid, date, index) {
+    const snap  = await getDoc(doc(firestore, "users", uid));
+    const plans = [...(snap.data()?.planned?.[date] || [])];
+    plans.splice(index, 1);
+    await setDoc(
+      doc(firestore, "users", uid),
+      { planned: { [date]: plans } },
+      { merge: true }
+    );
+  },
+
   // ── FRIENDS ──
 
   async getFriends(uid) {
@@ -89,7 +119,6 @@ export const db = {
     );
   },
 
-  // Returns a frozen deep copy — cannot be used to write back
   async getFriendProfile(friendId) {
     const snap = await getDoc(doc(firestore, "users", friendId));
     if (!snap.exists()) return null;
@@ -100,27 +129,24 @@ export const db = {
 
   // ── USER PROFILE ──
 
-  // Save display name and role when a user registers
   async createProfile(uid, username, role = "user") {
     await setDoc(
       doc(firestore, "users", uid),
-      { username, role, friends: [], logs: {} },
+      { username, role, friends: [], logs: {}, planned: {} },
       { merge: true }
     );
   },
 
-  // Get a user's profile (username, role)
   async getProfile(uid) {
     const snap = await getDoc(doc(firestore, "users", uid));
     return snap.exists() ? snap.data() : null;
   },
 
-  // Get all user profiles for the leaderboard
   async getAllProfiles() {
     const { collection, getDocs } = await import(
       "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"
     );
-    const snap = await getDocs(collection(firestore, "users"));
+    const snap   = await getDocs(collection(firestore, "users"));
     const result = {};
     snap.forEach(d => { result[d.id] = d.data(); });
     return result;
